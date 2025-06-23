@@ -1,6 +1,7 @@
-import { cn } from "@/lib/utility";
 import { useEffect, useState } from "react";
-import { X,Menu } from "lucide-react";
+import { cn } from "@/lib/utility";
+import { X, Menu } from "lucide-react";
+
 const navItems = [
   { name: "Home", href: "#hero" },
   { name: "About", href: "#about" },
@@ -8,70 +9,145 @@ const navItems = [
   { name: "Projects", href: "#projects" },
   { name: "Contact", href: "#contact" },
 ];
-export const Navbar = () => {
-  const [isScrolled, setScrolled] = useState(false);
-  const [isMenuOpen, setisMenuOpen] = useState(true);
+
+// Custom hook to track active section based on scroll
+const useActiveSection = (sections) => {
+  const [activeSection, setActiveSection] = useState(sections[0]);
 
   useEffect(() => {
     const handleScroll = () => {
-      setScrolled(window.screenY > 10);
+      let current = sections[0];
+      sections.forEach((sectionId) => {
+        const el = document.getElementById(sectionId);
+        if (el) {
+          const top = el.getBoundingClientRect().top;
+          if (top <= 80) {
+            current = sectionId;
+          }
+        }
+      });
+      setActiveSection(current);
     };
+
     window.addEventListener("scroll", handleScroll);
+    handleScroll(); // Initialize on mount
+
     return () => window.removeEventListener("scroll", handleScroll);
+  }, [sections]);
+
+  return activeSection;
+};
+
+export const Navbar = () => {
+  const [isScrolled, setIsScrolled] = useState(false);
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+
+  // Get active section for nav highlight
+  const sectionIds = navItems.map((item) => item.href.replace("#", ""));
+  const activeSection = useActiveSection(sectionIds);
+
+  // Scroll listener for shadow/glow effect
+  useEffect(() => {
+    const onScroll = () => setIsScrolled(window.scrollY > 10);
+    window.addEventListener("scroll", onScroll);
+    return () => window.removeEventListener("scroll", onScroll);
   }, []);
+
+  // Close mobile menu on Escape key
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (e.key === "Escape" && isMenuOpen) {
+        setIsMenuOpen(false);
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [isMenuOpen]);
 
   return (
     <nav
       className={cn(
-        "fixed w-full z-40 transition-all duration-300",
-        isScrolled ? "py-3 bg-background/80 backdrop-blur-md shadow-xs" : "py-5"
+        "fixed w-full z-50 transition-all duration-300",
+        isScrolled
+          ? "py-3 bg-white/20 backdrop-blur-lg border-b border-white/30 shadow-lg dark:bg-gray-900/30 dark:border-gray-700 dark:shadow-lg"
+          : "py-5 bg-transparent"
       )}
+      role="navigation"
+      aria-label="Primary Navigation"
     >
-      <div className="container flex items-center justify-between">
+      <div className="container mx-auto flex items-center justify-between px-4 md:px-0">
+        {/* Logo */}
         <a
           href="#hero"
-          className="text-x-l font-bold text-primary flex items-center"
+          className="text-2xl font-extrabold text-primary flex items-center select-none transition-transform duration-300 hover:scale-105 hover:brightness-110"
+          aria-label="Go to home section"
         >
-          <span className="relative z-10">
-            <span className="text-glow text-forground">Shine</span> Portfolio
-          </span>
+          <span className="text-glow text-foreground">Akhil</span> Portfolio
         </a>
 
-        {/* desktop */}
-
+        {/* Desktop Nav */}
         <div className="hidden md:flex space-x-8">
-          {navItems.map((item, key) => (
+          {navItems.map((item, idx) => (
             <a
-              key={key}
+              key={idx}
               href={item.href}
-              className="text-forground/80 hover:text-primary transition-colors duration-300"
+              className={cn(
+                "relative group text-foreground/90 font-medium tracking-wide transition-colors duration-300",
+                activeSection === item.href.replace("#", "")
+                  ? "text-primary font-bold"
+                  : "hover:text-primary"
+              )}
+              aria-current={
+                activeSection === item.href.replace("#", "") ? "page" : undefined
+              }
             >
               {item.name}
+              {/* Underline */}
+              <span
+                className={cn(
+                  "absolute bottom-0 left-0 w-full h-[2px] bg-primary transition-all duration-300 scale-x-0 opacity-0 group-hover:opacity-100 group-hover:scale-x-100",
+                  activeSection === item.href.replace("#", "")
+                    ? "opacity-100 scale-x-100"
+                    : ""
+                )}
+              />
             </a>
           ))}
         </div>
 
-        {/* mobile */}
-        <button onClick={()=>setisMenuOpen((prev)=> !prev)}
-        aria-label={isMenuOpen? "Close Menu":"Open Menu"}
-            className="md:hidden p-2 text-forground z-50">{isMenuOpen ? <X size={24} />:<Menu />}{""}</button>
+        {/* Mobile Menu Button */}
+        <button
+          onClick={() => setIsMenuOpen((prev) => !prev)}
+          aria-label={isMenuOpen ? "Close Menu" : "Open Menu"}
+          aria-expanded={isMenuOpen}
+          aria-controls="mobile-menu"
+          className="md:hidden p-2 text-foreground z-50 focus:outline-none focus:ring-2 focus:ring-primary rounded"
+        >
+          {isMenuOpen ? <X size={24} /> : <Menu size={24} />}
+        </button>
 
-        <div className={cn("fixed inset-0 bg-background/95 backdrop-blur-md z-40 flex flex-col items-center justify-center",
-            "transition-all duration-300 md:hidden",
-            isMenuOpen ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"
-        )}>
-          <div className="flex flex-col space-y-8 text-xl">
-            {navItems.map((item, key) => (
-              <a
-              onClick={()=>setisMenuOpen(false)}
-                key={key}
-                href={item.href}
-                className="text-forground/80 hover:text-primary transition-colors duration-300"
-              >
-                {item.name}
-              </a>
-            ))}
-          </div>
+        {/* Mobile Menu Overlay */}
+        <div
+          id="mobile-menu"
+          role="menu"
+          className={cn(
+            "fixed inset-0 bg-white/90 dark:bg-gray-900/95 backdrop-blur-md z-40 flex flex-col items-center justify-center space-y-10 transition-all duration-300 md:hidden",
+            isMenuOpen
+              ? "opacity-100 pointer-events-auto"
+              : "opacity-0 pointer-events-none"
+          )}
+        >
+          {navItems.map((item, idx) => (
+            <a
+              role="menuitem"
+              key={idx}
+              href={item.href}
+              onClick={() => setIsMenuOpen(false)}
+              className="text-foreground/90 dark:text-gray-300 text-2xl font-semibold hover:text-primary transition-colors duration-300"
+            >
+              {item.name}
+            </a>
+          ))}
         </div>
       </div>
     </nav>

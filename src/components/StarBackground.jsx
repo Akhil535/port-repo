@@ -1,84 +1,16 @@
-import { useEffect, useState } from "react";
+import React from "react";
 
 export const StarBackground = () => {
-  const [stars, setStars] = useState([]);
-  const [meteors, setMeteors] = useState([]);
-
-  useEffect(() => {
-    generateStars();
-    generateMeteors();
-
-    const handleResize =()=> {
-      generateStars();
-    }
-    window.addEventListener('resize',handleResize)
-
-    return ()=> window.removeEventListener("resize",handleResize)
-  },[]);
-  const generateStars = () => {
-    const numberOfStars = Math.floor(
-      (window.innerWidth * innerHeight) / 10000
-    );
-    const newStars = [];
-    for (let i = 0; i < numberOfStars; i++) {
-      newStars.push({
-        id: i,
-        size: Math.random() * 3 + 1,
-        x: Math.random() * 100,
-        y: Math.random() * 100,
-        opacity: Math.random() * 0.5 + 0.5,
-        animationDuration: Math.random() * 4 + 2,
-      });
-    }
-    setStars(newStars);
-  };
-
-  const generateMeteors = () => {
-    const numberOfMeteos = 4;
-    const newMeteor = [];
-    for (let i = 0; i < numberOfMeteos; i ++) {
-      newMeteor.push({
-        id: i,
-        size: Math.random() * 2 + 1,
-        x: Math.random() * 100,
-        y: Math.random() * 20,
-        delay: Math.random() * 15,
-        animationDuration: Math.random() * 3 + 3,
-      });
-    }
-    setMeteors(newMeteor);
-  };
   return (
-    <div className="fixed inset-0 overflow-hidden pointer-events-none z-0">
-      {stars.map((star) => (
-        <div
-          key={star.id}
-          className="star animate-pulse-subtle"
-          style={{
-            width: star.size + "px",
-            height: star.size + "px",
-            left: star.x + "%",
-            top: star.y + "%",
-            opacity: star.opacity,
-            animationDuration: star.animationDuration + "s",
-          }}
-        />
-      ))}
-
-      {meteors.map((meteor) => (
-        <div
-          key={meteor.id}
-          className="meteor animate-meteor"
-          style={{
-            width: meteor.size *50 + "px",
-            height: meteor.size + "px",
-            left: meteor.x + "%",
-            top: meteor.y + "%",
-            animationDelay: meteor.delay,
-            animationDuration: meteor.animationDuration + "s",
-          }}
-        />
-      ))}
+    <div className="fixed inset-0 -z-10 overflow-hidden">
+      {/* Gradient blob 1 */}
+      <div className="absolute top-1/4 left-1/2 w-[60vw] h-[60vw] bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 rounded-full filter blur-3xl opacity-20 animate-blob" />
+      
+      {/* Gradient blob 2 */}
+      <div className="absolute top-1/2 left-1/3 w-[50vw] h-[50vw] bg-gradient-to-br from-blue-500 via-cyan-500 to-sky-500 rounded-full filter blur-3xl opacity-20 animate-blob animation-delay-2000" />
+      
+      {/* Gradient blob 3 */}
+      <div className="absolute top-[60%] left-[70%] w-[40vw] h-[40vw] bg-gradient-to-br from-rose-400 via-fuchsia-500 to-purple-500 rounded-full filter blur-3xl opacity-20 animate-blob animation-delay-4000" />
     </div>
   );
 };
